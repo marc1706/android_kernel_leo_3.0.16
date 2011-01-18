@@ -103,6 +103,7 @@ out:
 
 /* The first byte is expected to be a report number.
  * This function is to be called with the minors_lock mutex held */
+
 static ssize_t hidraw_send_report(struct file *file, const char __user *buffer, size_t count, unsigned char report_type)
 {
 	unsigned int minor = iminor(file->f_path.dentry->d_inode);
@@ -208,6 +209,7 @@ static ssize_t hidraw_get_report(struct file *file, char __user *buffer, size_t 
 
 	/* Read the first byte from the user. This is the report number,
 	 * which is passed to dev->hid_get_raw_report(). */
+
 	if (copy_from_user(&report_number, buffer, 1)) {
 		ret = -EFAULT;
 		goto out_free;
