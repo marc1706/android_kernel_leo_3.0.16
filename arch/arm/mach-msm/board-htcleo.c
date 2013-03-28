@@ -1303,7 +1303,7 @@ static void __init htcleo_init(void)
 //	*(uint32_t*)0xF800380C |= 0x20;
 
 	printk("htcleo_init()\n");
-	//msm_hw_reset_hook = htcleo_reset;
+	msm_hw_reset_hook = htcleo_reset;
 
 	do_grp_reset();
 	do_sdc1_reset();
