@@ -731,26 +731,30 @@ static int msm_otg_suspend(struct msm_otg *dev)
 
 	ulpi_write(dev, 0x08, 0x09);/* turn off PLL on integrated phy */
 
-	timeout = jiffies + msecs_to_jiffies(500);
-	disable_phy_clk();
-	while (!is_phy_clk_disabled()) {
-		if (time_after(jiffies, timeout)) {
-			pr_err("%s: Unable to suspend phy\n", __func__);
-			/*
-			 * Start otg state machine in default state upon
-			 * phy suspend failure*/
-			spin_lock_irqsave(&dev->lock, flags);
-			dev->otg.state = OTG_STATE_UNDEFINED;
-			spin_unlock_irqrestore(&dev->lock, flags);
-			queue_work(dev->wq, &dev->sm_work);
-			goto out;
-		}
-		msleep(1);
-		/* check if there are any pending interrupts*/
-		if (((readl(USB_OTGSC) & OTGSC_INTR_MASK) >> 8) &
-				readl(USB_OTGSC)) {
-			enable_idabc(dev);
-			goto out;
+	if (dev->pdata->phy_reset)
+		dev->pdata->phy_reset(dev->regs);
+	else {
+		timeout = jiffies + msecs_to_jiffies(500);
+		disable_phy_clk();
+		while (!is_phy_clk_disabled()) {
+			if (time_after(jiffies, timeout)) {
+				pr_err("%s: Unable to suspend phy\n", __func__);
+				/*
+				* Start otg state machine in default state upon
+				* phy suspend failure*/
+				spin_lock_irqsave(&dev->lock, flags);
+				dev->otg.state = OTG_STATE_UNDEFINED;
+				spin_unlock_irqrestore(&dev->lock, flags);
+				queue_work(dev->wq, &dev->sm_work);
+				goto out;
+			}
+			msleep(1);
+			/* check if there are any pending interrupts*/
+			if (((readl(USB_OTGSC) & OTGSC_INTR_MASK) >> 8) &
+					readl(USB_OTGSC)) {
+				enable_idabc(dev);
+				goto out;
+			}
 		}
 	}
 
