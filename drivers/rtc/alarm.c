@@ -33,8 +33,7 @@
 #define ANDROID_ALARM_PRINT_FLOW (1U << 6)
 
 static int debug_mask = ANDROID_ALARM_PRINT_ERROR | \
-			ANDROID_ALARM_PRINT_INIT_STATUS | \
-			ANDROID_ALARM_PRINT_CALL;
+			ANDROID_ALARM_PRINT_INIT_STATUS;
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
 #define OFFALARM_SIZE	(10)
