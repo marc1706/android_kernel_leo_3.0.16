@@ -47,7 +47,7 @@ module_param_named(mmutype, ksgl_mmu_type, charp, 0);
 MODULE_PARM_DESC(ksgl_mmu_type,
 "Type of MMU to be used for graphics. Valid values are 'iommu' or 'gpummu' or 'nommu'");
 
-struct pm_qos_request_list *kgsl_pm_qos_req;
+struct pm_qos_request_list kgsl_pm_qos_req;
 static struct ion_client *kgsl_ion_client;
 
 /**
@@ -2283,7 +2283,7 @@ void kgsl_unregister_device(struct kgsl_device *device)
 	kgsl_pwrctrl_uninit_sysfs(device);
 
 	wake_lock_destroy(&device->idle_wakelock);
-	pm_qos_remove_request(kgsl_pm_qos_req);
+	pm_qos_remove_request(&kgsl_pm_qos_req);
 
 	idr_destroy(&device->context_idr);
 
@@ -2386,8 +2386,8 @@ kgsl_register_device(struct kgsl_device *device)
 #else
 	wake_lock_init(&device->idle_wakelock, WAKE_LOCK_IDLE, device->name);
 #endif
-	/*kgsl_pm_qos_req = pm_qos_add_request(PM_QOS_CPU_DMA_LATENCY,
-				PM_QOS_DEFAULT_VALUE);*/
+	pm_qos_add_request(&kgsl_pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+				PM_QOS_DEFAULT_VALUE);
 
 	idr_init(&device->context_idr);
 
