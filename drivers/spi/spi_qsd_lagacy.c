@@ -209,7 +209,7 @@ static int __init msm_spi_probe(struct platform_device *pdev)
 	// It seems like we need to use iface_clk for the new clock definitions
 	// by marc1706
         //spi_clk = clk_get(&pdev->dev, "spi_clk");
-	spi_clk = clk_get(&pdev->dev, "iface_clk");
+	spi_clk = clk_get(&pdev->dev, "core_clk");
         if (IS_ERR(spi_clk)) {
                 dev_err(&pdev->dev, "%s: unable to get spi_clk\n", __func__);
                 rc = PTR_ERR(spi_clk);
