@@ -2837,7 +2837,7 @@ static struct audio_client * audio_test(void)
             clk_enable(sdac_clk);
 
     // 1.  attach ADIE
-    adie = dal_attach_ex(ADIE_DAL_DEVICE, "NULL", ADIE_DAL_PORT, 0, 0, 0);
+    adie = dal_attach(ADIE_DAL_DEVICE, ADIE_DAL_PORT, 0, 0, 0);
     if (!adie) 
     {
         pr_err("audio_init: cannot attach to adie\n");

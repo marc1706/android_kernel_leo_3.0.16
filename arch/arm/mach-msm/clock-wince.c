@@ -1022,7 +1022,7 @@ static int pc_clk_set_rate(struct clk *clk, unsigned long rate)
 
 	retval = 0;
 
-    r = new_clk_set_rate(id, rate);
+	r = new_clk_set_rate(id, rate);
 	if (r != -1) return r;
 
 	if(DEBUG_MDNS)
