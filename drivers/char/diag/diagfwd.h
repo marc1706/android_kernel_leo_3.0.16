@@ -36,4 +36,9 @@ int diagfwd_disconnect(void);
 extern int diag_debug_buf_idx;
 extern unsigned char diag_debug_buf[1024];
 
+#define SMD_FUNC_CLOSE 0
+#define SMD_FUNC_OPEN_DIAG 1
+#define SMD_FUNC_OPEN_BT 2
+void diag_smd_enable(smd_channel_t *ch, char *src, int mode);
+
 #endif

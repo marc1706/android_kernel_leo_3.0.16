@@ -52,7 +52,11 @@
 #include <mach/htc_usb.h>
 #include <mach/msm_flashlight.h>
 #include <mach/msm_serial_hs.h>
+#ifdef CONFIG_USB_MSM_OTG_72K
 #include <mach/msm_hsusb.h>
+#else
+#include <linux/usb/msm_hsusb.h>
+#endif
 #include <mach/msm_hsusb_hw.h>
 #ifdef CONFIG_SERIAL_BCM_BT_LPM
 #include <mach/bcm_bt_lpm.h>
@@ -611,6 +615,7 @@ void msm_hsusb_8x50_phy_reset(void)
 	return;
 }
 
+#if 0
 static struct msm_otg_platform_data msm_otg_pdata = {
 	.phy_reset		= msm_hsusb_8x50_phy_reset,
 	.pemp_level		= PRE_EMPHASIS_WITH_20_PERCENT,
@@ -618,17 +623,27 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.drv_ampl		= HS_DRV_AMPLITUDE_DEFAULT,
 	.se1_gating		= SE1_GATING_DISABLE,
 };
+#else
+static int htcleo_phy_init_seq[] ={0x0C, 0x31, 0x30, 0x32, 0x1D, 0x0D, 0x1D, 0x10, -1};
 
+static struct msm_otg_platform_data msm_otg_pdata = {
+	.phy_init_seq		= htcleo_phy_init_seq,
+	.mode			= USB_PERIPHERAL,
+	.otg_control		= OTG_PHY_CONTROL,
+};
+#endif
+
+#if 0
 static struct msm_hsusb_gadget_platform_data msm_gadget_pdata = {
 	.is_phy_status_timer_on = 1,
 };
+#endif
 
 static uint32_t usb_phy_3v3_table[] =
 {
     PCOM_GPIO_CFG(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_4MA)
 };
 #if 0
-static int htcleo_phy_init_seq[] ={0x0C, 0x31, 0x30, 0x32, 0x1D, 0x0D, 0x1D, 0x10, -1};
 
 // modified to further reflect bravo kernel code
 static struct msm_hsusb_platform_data msm_hsusb_pdata = {
@@ -703,8 +718,10 @@ static void htcleo_add_usb_devices(void)
 #endif
 #endif
 	msm_device_otg.dev.platform_data = &msm_otg_pdata;
-	msm_device_gadget_peripheral.dev.platform_data = &msm_gadget_pdata;
+	//msm_device_gadget_peripheral.dev.platform_data = &msm_gadget_pdata;
+	msm_device_gadget_peripheral.dev.parent = &msm_device_otg.dev;
 	usb_gpio_init();
+	platform_device_register(&msm_device_gadget_peripheral);
 	platform_device_register(&android_usb_device);
 }
 
@@ -1478,7 +1495,7 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_uart_dm1,
 	&htcleo_rfkill,
 	&msm_device_otg,
-	&msm_device_gadget_peripheral,
+//	&msm_device_gadget_peripheral,
 	&qsd_device_spi,
 	&msm_device_dmov,
 	&msm_device_nand,

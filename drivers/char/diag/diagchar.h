@@ -17,9 +17,11 @@
 #include <linux/module.h>
 #include <linux/mempool.h>
 #include <linux/mutex.h>
+#include <linux/wakelock.h>
 #include <linux/workqueue.h>
 #include <mach/msm_smd.h>
 #include <asm/atomic.h>
+#include <mach/usbdiag.h>
 #include <asm/mach-types.h>
 /* Size of the USB buffers used for read and write*/
 #define USB_MAX_OUT_BUF 4096
@@ -206,6 +208,13 @@ struct diagchar_dev {
 	int logging_mode;
 	int mask_check;
 	int logging_process_id;
+#if DIAG_XPST
+	unsigned char nohdlc;
+	unsigned char in_busy_dmrounter;
+	struct mutex smd_lock;
+	unsigned char init_done;
+	unsigned char is2ARM11;
+#endif
 #ifdef CONFIG_DIAG_SDIO_PIPE
 	unsigned char *buf_in_sdio;
 	unsigned char *usb_buf_mdm_out;
@@ -240,6 +249,8 @@ struct diagchar_dev {
 	struct diag_request *usb_read_mdm_ptr;
 	struct diag_request *write_ptr_mdm;
 #endif
+	u64 diag_smd_count; /* from smd */
+	u64 diag_qdsp_count; /* from qdsp */
 };
 
 extern struct diagchar_dev *driver;

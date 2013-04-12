@@ -1238,6 +1238,36 @@ static void diag_smd_wcnss_notify(void *ctxt, unsigned event)
 	queue_work(driver->diag_wq, &(driver->diag_read_smd_wcnss_work));
 }
 
+#if DIAG_XPST
+void diag_smd_enable(smd_channel_t *ch, char *src, int mode)
+{
+	int r = 0;
+	static smd_channel_t *_ch;
+	DIAGFWD_INFO("smd_try_open(%s): mode=%d\n", src, mode);
+
+	mutex_lock(&driver->smd_lock);
+	diag_smd_function_mode = mode;
+	if (mode) {
+		if (!driver->ch) {
+			r = smd_open(SMDDIAG_NAME, &driver->ch, driver, diag_smd_notify);
+			if (!r)
+				_ch = driver->ch;
+		} else
+			_ch = driver->ch;
+	} else {
+		if (driver->ch) {
+			r = smd_close(driver->ch);
+			driver->ch = NULL;
+			if (!r)
+				_ch = driver->ch;
+		}
+	}
+	ch = _ch;
+	mutex_unlock(&driver->smd_lock);
+	DIAGFWD_INFO("smd_try_open(%s): r=%d _ch=%x\n", src, r, (unsigned int)ch);
+}
+#endif
+
 static int diag_smd_probe(struct platform_device *pdev)
 {
 	int r = 0;
