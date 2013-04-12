@@ -1260,19 +1260,25 @@ static struct platform_device ram_console_device = {
 // Power/Battery
 ///////////////////////////////////////////////////////////////////////
 
+int htcleo_support_super_charger(void)
+{
+	return 1;
+}
+
 static struct htc_battery_platform_data htc_battery_pdev_data = {
 	.func_show_batt_attr = htc_battery_show_attr,
 	.gpio_mbat_in = -1,
 	.gpio_mchg_en_n = HTCLEO_GPIO_BATTERY_CHARGER_ENABLE,
 	.gpio_iset = HTCLEO_GPIO_BATTERY_CHARGER_CURRENT,
-	.gpio_power = HTCLEO_GPIO_POWER_USB,
+	.gpio_adp_9v = HTCLEO_GPIO_POWER_USB,
 	.guage_driver = GUAGE_DS2746,
 	.charger = LINEAR_CHARGER,
 	.m2a_cable_detect = 0,
-	.force_no_rpc = 1,
-	.int_data = {
+//	.force_no_rpc = 1,
+	.func_is_support_super_charger = htcleo_support_super_charger,
+/*	.int_data = {
 		.chg_int = HTCLEO_GPIO_BATTERY_OVER_CHG,
-	},
+	},*/
 };
 
 static struct platform_device htc_battery_pdev = {
@@ -1283,13 +1289,145 @@ static struct platform_device htc_battery_pdev = {
 	},
 };
 
+#ifdef CONFIG_BATTERY_DS2746
 static int get_thermal_id(void)
 {
-	return THERMAL_600;
+	return THERMAL_300_47_3440;
 }
 
-static struct ds2746_platform_data ds2746_pdev_data = {
+static int get_battery_id(void)
+{
+	return BATTERY_ID_SANYO_1300MAH_TWS;
+}
+
+/* battery parameters */
+/*! star_lee 20100426 - update KADC discharge parameter */
+uint32_t m_parameter_sony_1300mah_formosa[] =
+{
+  /* capacity (in 0.01%) -> voltage (in mV)*/
+  10000, 4100, 5500, 3839, 2400, 3759, 400, 3667, 0, 3397,
+};
+
+uint32_t m_parameter_default[] =
+{
+  /* capacity (in 0.01%) -> voltage (in mV)*/
+  10000, 4135, 7500, 3960, 4700, 3800, 1700, 3727, 900, 3674, 300, 3640, 0, 3420,
+};
+
+uint32_t m_parameter_samsung_1230mah_formosa[] =
+{
+  /* capacity (in 0.01%) -> voltage (in mV)*/
+  10000, 4135, 7500, 3960, 4700, 3800, 1700, 3727, 900, 3674, 300, 3640, 0, 3420,
+};
+
+uint32_t m_parameter_htc_2300mah_formosa[] =
+{
+  /* capacity (in 0.01%) -> voltage (in mV)*/
+  10000, 4135, 7500, 3960, 4700, 3800, 1700, 3727, 900, 3674, 300, 3640, 0, 3420,
+};
+
+static uint32_t* m_param_tbl[] = {
+	m_parameter_sony_1300mah_formosa,
+	m_parameter_sony_1300mah_formosa,
+	m_parameter_sony_1300mah_formosa,
+	m_parameter_sony_1300mah_formosa,
+	m_parameter_samsung_1230mah_formosa,
+	m_parameter_htc_2300mah_formosa
+};
+
+static uint32_t fl_25[] = {
+	2300, /* Unknown battery */
+	1280, /* Sony 1300mAh (Formosa) */
+	1280, /* Sony 1300mAh (HTE) */
+	1250, /* Sanyo 1300mAh (HTE) */
+	1230, /* Samsung 1230mAh */
+	2300, /* HTC Extended 2300mAh */
+};
+
+static uint32_t pd_m_coef[] = {
+	24, /* Unknown battery */
+	24, /* Sony 1300mAh (Formosa) */
+	24, /* Sony 1300mAh (HTE) */
+	27, /* Sanyo 1300mAh (HTE) */
+	30, /* Samsung 1230mAh */
+	30, /* HTC Extended 2300mAh */ 
+};
+
+static uint32_t pd_m_resl[] = {
+	100, /* Unknown battery */
+	100, /* Sony 1300mAh (Formosa) */
+	100, /* Sony 1300mAh (HTE) */
+	100, /* Sanyo 1300mAh (HTE) */
+	100, /* Samsung 1230mAh */
+	100, /* HTC Extended 2300mAh */ 
+};
+
+static uint32_t pd_t_coef[] = {
+	/* Ex: 140 -> 0.014, 156 -> 0.0156*/
+	140, /* Unknown battery */
+	140, /* Sony 1300mAh (Formosa) */
+	140, /* Sony 1300mAh (HTE) */
+	156, /* Sanyo 1300mAh (HTE) */
+	250, /* Samsung 1230mAh */
+	250, /* HTC Extended 2300mAh */ 
+};
+
+static int32_t padc[] = {
+	/* mapping temp to temp_index*/
+	200, /* ~20C */
+	100, /* 20~10C  */
+	50, /* 10~5C */
+	0, /* 5~0C */
+	-5, /* 0~-5C */
+	-10, /* -5~-10C */
+	-3000, /* -10C~ */
+};
+
+// PW is always 5 for DS2746
+static int32_t pw[] = {
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+};
+
+static uint32_t* pd_m_coef_tbl[] = {pd_m_coef,};
+static uint32_t* pd_m_resl_tbl[] = {pd_m_resl,};
+static uint32_t capacity_deduction_tbl_01p[] = {
+	0, /* ~20C,    upper capacity 100 is usable */
+	0, /* 20~10C,  upper capacity 95 is usable */
+	0, /* 10~5C,   upper capacity 92 is usable */
+	0, /* 5~0C,	upper capacity 90 is usable */
+	0, /* 0~-5C,   upper capacity 87 is usable */
+	0, /* -5~-10C, upper capacity 85 is usable */
+	0, /* -10C~,   upper capacity 85 is usable */
+};
+
+static struct battery_parameter htcleo_battery_parameter = {
+	.fl_25 = fl_25,
+	.pd_m_coef_tbl = pd_m_coef_tbl,
+	.pd_m_coef_tbl_boot = pd_m_coef_tbl,
+	.pd_m_resl_tbl = pd_m_resl_tbl,
+	.pd_m_resl_tbl_boot = pd_m_resl_tbl,
+	.pd_t_coef = pd_t_coef,
+	.padc = padc,
+	.pw = pw,
+	.capacity_deduction_tbl_01p = capacity_deduction_tbl_01p,
+	.id_tbl = NULL,
+	.temp_index_tbl = NULL,
+	.m_param_tbl = m_param_tbl,
+	.m_param_tbl_size = sizeof(m_param_tbl)/sizeof(uint32_t*),
+};
+
+static ds2746_platform_data ds2746_pdev_data = {
 	.func_get_thermal_id = get_thermal_id,
+	.func_get_battery_id = get_battery_id,
+	.func_poweralg_config_init = NULL,	/* by default */
+	.func_update_charging_protect_flag = NULL,	/* by default */
+	.r2_kohm = 0,	/* use get_battery_id, doesn't need this */
+	.batt_param = &htcleo_battery_parameter,
 };
 
 static struct platform_device ds2746_battery_pdev = {
@@ -1299,6 +1437,7 @@ static struct platform_device ds2746_battery_pdev = {
 		.platform_data = &ds2746_pdev_data,
 	},
 };
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 // Real Time Clock
@@ -1351,8 +1490,8 @@ static struct platform_device *devices[] __initdata =
     &android_pmem_venc_device,
 //    &android_pmem_kernel_ebi1_device,
 	&msm_device_i2c,
-	&ds2746_battery_pdev,
 	&htc_battery_pdev,
+	&ds2746_battery_pdev,
 	&msm_kgsl_3d0,
 	&msm_camera_sensor_s5k3e2fx,
 	&htcleo_flashlight_device,

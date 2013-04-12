@@ -17,12 +17,10 @@
 #include <linux/wrapper_types.h>
 #include <linux/ds2746_param.h>
 
-enum ds2784_notify_evt_t {
-	DS2784_CHARGING_CONTROL = 0,
-	DS2784_LEVEL_UPDATE,
-	DS2784_BATTERY_FAULT,
-	DS2784_OVER_TEMP,
-	DS2784_NUM_EVENTS,
+
+enum ds2746_notify_evt_t {
+	DS2746_CHARGING_CONTROL = 0,
+	DS2746_LEVEL_UPDATE,
 };
 
 /* battery charging state*/
@@ -36,15 +34,29 @@ enum {
 	CHARGE_STATE_FULL_WAIT_STABLE,  /* charging state but going full*/
 	CHARGE_STATE_FULL_CHARGING, 	/* charging full, keep charging*/
 	CHARGE_STATE_FULL_PENDING,  	/* charging full, stop charging*/
+	CHARGE_STATE_FULL_RECHARGING,  	/* charging full, recharging*/
 };
 
 enum {
-	THERMAL_300,
-	THERMAL_600,
-	THERMAL_1000,
+	THERMAL_300_100_4360,
+	THERMAL_300_47_3440,
+	THERMAL_1000_100_4360,
+};
+
+/* MATT TODO: remove after integration */
+enum BATTERY_ID_ENUM {
+	BATTERY_ID_UNKNOWN = 0,
+	BATTERY_ID_SONY_1300MAH_FORMOSA,
+	BATTERY_ID_SONY_1300MAH_HTE,
+	BATTERY_ID_SANYO_1300MAH_HTE,
+	BATTERY_ID_SANYO_1300MAH_TWS,
+	BATTERY_ID_HTC_EXTENDED_2300MAH_FORMOSA,
+	BATTERY_ID_NUM /* include unknown battery*/
 };
 
 /* power algorithm data structure and config data structure*/
+
+typedef struct _ds2746_platform_data ds2746_platform_data;
 
 struct poweralg_type
 {
@@ -61,10 +73,15 @@ struct poweralg_type
 	struct battery_type battery;
 	struct protect_flags_type protect_flags;
 	BOOL is_china_ac_in;
+	BOOL is_super_ac;
 	BOOL is_cable_in;
 	BOOL is_voltage_stable;
 	BOOL is_software_charger_timeout;
+	BOOL is_superchg_software_charger_timeout;
 	UINT32 state_start_time_ms;
+	UINT32 last_charger_enable_toggled_time_ms;
+	BOOL is_need_toggle_charger;
+	ds2746_platform_data* pdata;
 };
 
 struct poweralg_config_type
@@ -76,6 +93,8 @@ struct poweralg_config_type
 	INT32 voltage_recharge_mv;  		 /* 0 to disable*/
 	INT32 capacity_recharge_p;  		 /* 0 to disable*/
 	INT32 voltage_exit_full_mv; 		 /* 0 to disable*/
+	INT32 min_taper_current_mv;		 /* 0 to disable*/
+	INT32 min_taper_current_ma; 		 /* 0 to disable*/
 	INT32 wait_votlage_statble_sec;
 	INT32 predict_timeout_sec;
 	INT32 polling_time_in_charging_sec;
@@ -83,7 +102,9 @@ struct poweralg_config_type
 
 	BOOL enable_full_calibration;
 	BOOL enable_weight_percentage;
-	INT32 software_charger_timeout_sec;  /* 0 to disable*/
+	INT32 software_charger_timeout_sec;  /* 0 to disable*/ /* for china AC */
+	INT32 superchg_software_charger_timeout_sec;  /* 0 to disable*/ /* for superchg */
+	INT32 charger_hw_safety_timer_watchdog_sec;  /* 0 to disable*/
 
 	BOOL debug_disable_shutdown;
 	BOOL debug_fake_room_temp;
@@ -92,9 +113,47 @@ struct poweralg_config_type
 	INT32 full_level;                  /* 0 to disable*/
 };
 
-struct ds2746_platform_data {
-	int (*func_get_thermal_id)(void);
+struct battery_parameter {
+	UINT32* fl_25;
+	UINT32** pd_m_coef_tbl_boot;	/* selected by temp_index */
+	UINT32** pd_m_coef_tbl;		/* selected by temp_index */
+	UINT32** pd_m_resl_tbl_boot;	/* selected by temp_index */
+	UINT32** pd_m_resl_tbl;		/* selected by temp_index */
+	UINT32* capacity_deduction_tbl_01p;	/* selected by temp_index */
+	UINT32* pd_t_coef;
+	INT32* padc;	/* less than 0: disable */
+	INT32* pw;	/* less than 0: disable */
+	UINT32* id_tbl;
+	INT32* temp_index_tbl;	/* NULL: disable */
+	UINT32** m_param_tbl;
+	int m_param_tbl_size;
+
+	INT32 voltage_adc_to_mv_coef;
+	INT32 voltage_adc_to_mv_resl;
+	INT32 current_adc_to_mv_coef;
+	INT32 current_adc_to_mv_resl;
+	INT32 discharge_adc_to_mv_coef;
+	INT32 discharge_adc_to_mv_resl;
+	INT32 acr_adc_to_mv_coef;
+	INT32 acr_adc_to_mv_resl;
+	INT32 charge_counter_zero_base_mAh;
+
+	INT32 id_adc_overflow;
+	INT32 id_adc_resl;
+	INT32 temp_adc_resl;
 };
+
+struct _ds2746_platform_data {
+	struct battery_parameter* batt_param;
+	int (*func_get_thermal_id)(void);
+	int (*func_get_battery_id)(void);
+	void (*func_poweralg_config_init)(struct poweralg_config_type*);
+	int (*func_update_charging_protect_flag)(int, int, int, BOOL*, BOOL*, BOOL*);
+	int r2_kohm;
+};
+
+
+#define DS2746_FULL_CAPACITY_DEFAULT	(999)
 
 /* battery behavior constant*/
 
@@ -113,7 +172,9 @@ int ds2746_blocking_notify( unsigned long val, void *v);
 void ds2746_charger_control( int type);
 int ds2746_i2c_write_u8( u8 value, u8 reg);
 int ds2746_i2c_read_u8( u8* value, u8 reg);
+int ds2746_battery_id_adc_2_ohm(int id_adc, int r2_kohm);
 void calibrate_id_ohm( struct battery_type *battery);
+extern int ds2746_charger_switch(int charger_switch);
 /* external function implemented by upper layer*/
 
 /*extern void powerlog_to_file(struct poweralg_type* poweralg);*/

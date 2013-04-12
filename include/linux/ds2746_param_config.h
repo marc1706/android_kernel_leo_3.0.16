@@ -30,16 +30,6 @@ battery parameter defines (depend on board design)
 
 static BOOL support_ds2746_gauge_ic = TRUE;
 
-enum BATTERY_ID_ENUM {
-	BATTERY_ID_UNKNOWN = 0,
-	BATTERY_ID_SONY_1300MAH_FORMOSA,
-	BATTERY_ID_SONY_1300MAH_HTE,
-	BATTERY_ID_SANYO_1300MAH_HTE,
-	BATTERY_ID_SANYO_1300MAH_TWS,
-	BATTERY_ID_HTC_EXTENDED_2300MAH_FORMOSA,
-	BATTERY_ID_NUM /* include unknown battery*/
-};
-
 UINT32 ID_RANGE[] =
 {
   /* id resister range = [min, max)*/
@@ -60,7 +50,7 @@ If temp_adc is located on 0-95, then the temp_01c is 700.
 			  ...
 			  1433-2046, then the temp_01c is -11.
 */
-UINT32 TEMP_MAP_300K[] =
+UINT32 TEMP_MAP_300K_100_4360[] =
 {
 0, 96, 100, 103, 107, 111, 115, 119, 123, 127,
 133, 137, 143, 148, 154, 159, 165, 172, 178, 185,
@@ -73,18 +63,20 @@ UINT32 TEMP_MAP_300K[] =
 1406, 1433, 2047,
 };
 
-UINT32 TEMP_MAP_600K[] =
+UINT32 TEMP_MAP_300K_47_3440[] =
 {
-0,56,59,60,63,65,68,70,73,75,78,81,84,87,91,94,98,
-102,105,110,114,118,123,128,133,138,144,149,156,161,
-168,175,181,189,197,205,213,222,231,240,250,260,270,
-281,293,304,317,329,343,356,371,385,401,417,433,450,
-467,486,504,523,543,563,584,616,628,650,674,697,721,
-746,772,798,824,851,878,906,934,962,991,1020,
-1050,1079,2047,
+0, 68, 70, 72, 74, 76, 79, 81, 84, 86,
+89, 92, 95, 97, 101, 104, 107, 110, 114, 118,
+121, 125, 129, 133, 138, 142, 147, 152, 157, 162,
+167, 173, 178, 184, 191, 197, 204, 210, 218, 225,
+232, 240, 249, 257, 266, 275, 284, 294, 303, 314,
+324, 335, 346, 358, 370, 382, 395, 408, 422, 436,
+450, 465, 480, 496, 513, 529, 546, 564, 582, 601,
+620, 639, 659, 680, 701, 722, 744, 766, 788, 811,
+835, 858, 2047,
 };
 
-UINT32 TEMP_MAP_1000K[] =
+UINT32 TEMP_MAP_1000K_100_4360[] =
 {
 0, 30, 31, 32, 34, 35, 36, 38, 39, 40,
 42, 44, 45, 47, 49, 51, 53, 55, 57, 60,
@@ -97,8 +89,13 @@ UINT32 TEMP_MAP_1000K[] =
 812, 843, 2047,
 };
 
+UINT32 *TEMP_MAP = TEMP_MAP_300K_100_4360;
 
-UINT32 *TEMP_MAP = TEMP_MAP_300K;
+/* use default parameter if it doesn't be passed from board */
+#define PD_M_COEF_DEFAULT	(30)
+#define PD_M_RESL_DEFAULT	(100)
+#define PD_T_COEF_DEFAULT	(250)
+#define CAPACITY_DEDUCTION_DEFAULT	(0)
 
 UINT32 FL_25[] =
 {
@@ -148,6 +145,12 @@ UINT32 M_PARAMETER_SONY_1300MAH_FORMOSA[] =
 {
   /* capacity (in 0.01%) -> voltage (in mV)*/
   10000, 4100, 5500, 3839, 2400, 3759, 400, 3667, 0, 3397,
+};
+
+UINT32 M_PARAMETER_DEFAULT[] =
+{
+  /* capacity (in 0.01%) -> voltage (in mV)*/
+  10000, 4135, 7500, 3960, 4700, 3800, 1700, 3727, 900, 3674, 300, 3640, 0, 3420,
 };
 
 UINT32 M_PARAMETER_Samsung_1230MAH_FORMOSA[] =
@@ -269,6 +272,7 @@ static INT32 acr_adc_to_mv_coef = 625;
 static INT32 acr_adc_to_mv_resl = 1580;
 static INT32 charge_counter_zero_base_mAh = 500;
 
+static INT32 id_adc_overflow = 3067; /* 3067 < id_adc: rawdata overflow */
 static INT32 id_adc_resl = 2047;
 static INT32 temp_adc_resl = 2047;
 
@@ -285,13 +289,9 @@ static INT32 over_low_temp_release_01c = 30;
 
 /* function config*/
 
-static BOOL is_allow_batt_id_change = FALSE;
+static BOOL is_allow_batt_id_change = TRUE;
+extern BOOL is_need_battery_id_detection;
 
-/*boot up voltage*/
-
-/*dead battery is voltage < M_0*/
-#define BATTERY_DEAD_VOLTAGE_LEVEL  	3420
-#define BATTERY_DEAD_VOLTAGE_RELEASE	3450
 
 #define TEMP_MAX 70
 #define TEMP_MIN -11

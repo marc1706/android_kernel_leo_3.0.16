@@ -21,19 +21,24 @@ static void poweralg_config_init(struct poweralg_config_type *config)
 {
 	config->full_charging_mv = 4140;
 	config->full_charging_ma = 50;
-	config->full_pending_ma = 0;		/* disabled*/
+	config->full_pending_ma = 0;	/* disabled*/
 	config->full_charging_timeout_sec = 60 * 60;
 	config->voltage_recharge_mv = 4180;
-	config->capacity_recharge_p = 0;		/* disabled*/
+	config->capacity_recharge_p = 0;
 	config->voltage_exit_full_mv = 4130;
+	config->min_taper_current_mv = 0; /* disabled */
+	config->min_taper_current_ma = 0; /* disabled */
 	config->wait_votlage_statble_sec = 1 * 60;
 	config->predict_timeout_sec = 10;
+	/* TODO doesn't be used. use program instead.(FAST_POLL/SLOW_POLL)*/
 	config->polling_time_in_charging_sec = 30;
 	config->polling_time_in_discharging_sec = 30;
 
 	config->enable_full_calibration = TRUE;
 	config->enable_weight_percentage = TRUE;
-	config->software_charger_timeout_sec = 0;   	 /* disabled*/
+	config->software_charger_timeout_sec = 0;	/* disabled*/
+	config->superchg_software_charger_timeout_sec = 0;	/* disabled */
+	config->charger_hw_safety_timer_watchdog_sec =  0;	/* disabled */
 
 	config->debug_disable_shutdown = FALSE;
 	config->debug_fake_room_temp = FALSE;
