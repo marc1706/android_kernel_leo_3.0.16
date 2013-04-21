@@ -1337,6 +1337,7 @@ static int s5k3e2fx_sensor_probe(const struct msm_camera_sensor_info *info,
 		struct msm_sensor_ctrl *s)
 {
 	int rc = 0;
+	pr_info("[CAM]s5k3e2fx_sensor_probe()\n");
 
 	rc = i2c_add_driver(&s5k3e2fx_i2c_driver);
 	if (rc < 0 || s5k3e2fx_client == NULL) {

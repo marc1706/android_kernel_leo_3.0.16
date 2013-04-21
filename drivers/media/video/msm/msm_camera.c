@@ -1981,8 +1981,12 @@ static int msm_get_sensor_info(struct msm_sync *sync, void __user *arg)
 	memcpy(&info.name[0],
 		sdata->sensor_name,
 		MAX_SENSOR_NAME);
-	info.flash_enabled = sdata->flash_data->flash_type !=
-		MSM_CAMERA_FLASH_NONE;
+	if ((int*) sdata->flash_data->flash_type != NULL)
+		info.flash_enabled = sdata->flash_data->flash_type !=
+			MSM_CAMERA_FLASH_NONE;
+	else
+		info.flash_enabled = 0;
+
 
 	/* copy back to user space */
 	if (copy_to_user((void *)arg,
@@ -4095,6 +4099,8 @@ int msm_camera_drv_start(struct platform_device *dev,
 	}
 
 	camera_type[camera_node] = sync->sctrl.s_camera_type;
+	if ((int*)camera_type[camera_node] == NULL)
+		sync->sctrl.s_camera_type = BACK_CAMERA_2D;
 	sensor_mount_angle[camera_node] = sync->sctrl.s_mount_angle;
 	camera_node++;
 
