@@ -1,3 +1,31 @@
+/* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Code Aurora nor
+ *       the names of its contributors may be used to endorse or promote
+ *       products derived from this software without specific prior written
+ *       permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
 #ifndef _MSM_VDEC_H_
 #define _MSM_VDEC_H_
 
@@ -18,12 +46,6 @@
 #define VDEC_IOCTL_GETDECATTRIBUTES   _IOR(VDEC_IOCTL_MAGIC, 10, \
 						struct vdec_dec_attributes)
 #define VDEC_IOCTL_GETVERSION   _IOR(VDEC_IOCTL_MAGIC, 11, struct vdec_version)
-#define VDEC_IOCTL_SETPROPERTY _IOW \
-   (VDEC_IOCTL_MAGIC, 12, struct vdec_property_info)
-#define VDEC_IOCTL_GETPROPERTY _IOR  \
-   (VDEC_IOCTL_MAGIC, 13, struct vdec_property_info)
-#define VDEC_IOCTL_PERFORMANCE_CHANGE_REQ  _IOW(VDEC_IOCTL_MAGIC, 14, \
-						unsigned int)
 
 enum {
 	VDEC_FRAME_DECODE_OK,
@@ -60,27 +82,6 @@ enum {
 	VDEC_COLOR_FORMAT_NV21 = 0x01,
 	VDEC_COLOR_FORMAT_NV21_YAMOTO = 0x02
    };
-
-enum vdec_property_id {
-	VDEC_FOURCC,
-	VDEC_PROFILE,
-	VDEC_LEVEL,
-	VDEC_DIMENSIONS,
-	VDEC_CWIN,
-	VDEC_INPUT_BUF_REQ,
-	VDEC_OUTPUT_BUF_REQ,
-	VDEC_LUMA_CHROMA_STRIDE,
-	VDEC_NUM_DAL_PORTS,
-	VDEC_PRIORITY,
-	VDEC_FRAME_ALIGNMENT
-};
-
-enum {
-	PERF_REQUEST_SET_MIN = 0,
-	PERF_REQUEST_LOWER,
-	PERF_REQUEST_RAISE,
-	PERF_REQUEST_SET_MAX
-};
 
 struct vdec_input_buf_info {
 	u32 offset;
@@ -237,41 +238,4 @@ struct vdec_version {
 	u32 minor;
 };
 
-struct dal_vdec_rectangle {
-	u32 width;
-	u32 height;
-};
-
-struct stride_type {
-	u32 luma;
-	u32 chroma;
-};
-
-struct frame_alignment_type {
-	u32 luma_width;
-	u32 luma_height;
-	u32 chroma_width;
-	u32 chroma_height;
-	u32 chroma_offset;
-};
-
-union vdec_property {
-	u32 fourcc;
-	u32 profile;
-	u32 level;
-	struct dal_vdec_rectangle dim;
-	struct vdec_cropping_window cw;
-	struct vdec_buf_desc input_req;
-	struct vdec_buf_desc output_req;
-	struct stride_type stride;
-	u32 num_dal_ports;
-	u32 priority;
-	struct frame_alignment_type frame_alignment;
-	u32 def_type;
-};
-
-struct vdec_property_info {
-	enum vdec_property_id id;
-	union vdec_property property;
-};
 #endif /* _MSM_VDEC_H_ */
