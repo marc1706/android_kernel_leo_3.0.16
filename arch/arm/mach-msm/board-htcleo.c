@@ -1162,17 +1162,6 @@ unsigned msm_num_footswitch_devices = ARRAY_SIZE(msm_footswitch_devices);
 #define MSM_PMEM_SF_SIZE	0x1700000
 #define MSM_AUDIO_SIZE		0x80000
 
-static struct android_pmem_platform_data android_pmem_kernel_ebi1_pdata = {
-	.name = PMEM_KERNEL_EBI1_DATA_NAME,
-	/* if no allocator_type, defaults to PMEM_ALLOCATORTYPE_BITMAP,
-	 * the only valid choice at this time. The board structure is
-	 * set to all zeros by the C runtime initialization and that is now
-	 * the enum value of PMEM_ALLOCATORTYPE_BITMAP, now forced to 0 in
-	 * include/linux/android_pmem.h.
-	 */
-	.cached = 0,
-};
-
 #ifdef CONFIG_KERNEL_PMEM_SMI_REGION
 
 static struct android_pmem_platform_data android_pmem_kernel_smi_pdata = {
@@ -1209,14 +1198,6 @@ static struct android_pmem_platform_data android_pmem_venc_pdata = {
 	.memory_type = MEMTYPE_EBI1,
 };
 
-static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
 	.id = 0,
@@ -1228,19 +1209,6 @@ static struct platform_device android_pmem_adsp_device = {
 	.id = 1,
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
-
-static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
-};
-/*
-static struct platform_device android_pmem_kernel_ebi1_device = {
-	.name = "android_pmem",
-	.id = 3,
-	.dev = { .platform_data = &android_pmem_kernel_ebi1_pdata },
-};
-*/
 
 #ifdef CONFIG_KERNEL_PMEM_SMI_REGION
 static struct platform_device android_pmem_kernel_smi_device = {
@@ -1504,9 +1472,7 @@ static struct platform_device *devices[] __initdata =
 	&msm_device_rtc,
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_audio_device,
-    &android_pmem_venc_device,
-//    &android_pmem_kernel_ebi1_device,
+	&android_pmem_venc_device,
 	&msm_device_i2c,
 	&htc_battery_pdev,
 	&ds2746_battery_pdev,
@@ -1663,14 +1629,6 @@ static void __init htcleo_blink_camera_led(void){
 }
 #endif // CONFIG_HTCLEO_BLINK_ON_BOOT
 
-static unsigned pmem_kernel_ebi1_size = PMEM_KERNEL_EBI1_SIZE;
-static int __init pmem_kernel_ebi1_size_setup(char *p)
-{
-	pmem_kernel_ebi1_size = memparse(p, NULL);
-	return 0;
-}
-early_param("pmem_kernel_ebi1_size", pmem_kernel_ebi1_size_setup);
-
 static unsigned pmem_sf_size = MSM_PMEM_SF_SIZE;
 static int __init pmem_sf_size_setup(char *p)
 {
@@ -1703,15 +1661,6 @@ static int __init pmem_adsp_size_setup(char *p)
 }
 early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
-
-static unsigned pmem_audio_size = MSM_AUDIO_SIZE;
-static int __init pmem_audio_size_setup(char *p)
-{
-	pmem_audio_size = memparse(p, NULL);
-	return 0;
-}
-early_param("audio_size", pmem_audio_size_setup);
-
 static struct memtype_reserve qsd8x50_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
 	},
@@ -1736,8 +1685,6 @@ static void __init size_pmem_devices(void)
 	size_pmem_device(&android_pmem_adsp_pdata, 0, pmem_adsp_size);
 	size_pmem_device(&android_pmem_pdata, 0, pmem_mdp_size);
 	size_pmem_device(&android_pmem_venc_pdata, 0, pmem_venc_size);
-	size_pmem_device(&android_pmem_audio_pdata, 0, pmem_audio_size);
-	//android_pmem_kernel_ebi1_pdata.size = pmem_kernel_ebi1_size;
 	qsd8x50_reserve_table[MEMTYPE_EBI1].size += PMEM_KERNEL_EBI1_SIZE;
 #endif
 }
@@ -1757,8 +1704,6 @@ static void __init reserve_pmem_memory(void)
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	reserve_memory_for(&android_pmem_venc_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
-	//reserve_memory_for(&android_pmem_kernel_ebi1_pdata);
 #endif
 }
 
