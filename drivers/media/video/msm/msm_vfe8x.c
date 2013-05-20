@@ -15,6 +15,7 @@
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
 #include <mach/irqs.h>
+#include <linux/clk.h>
 #include "msm_vfe8x_proc.h"
 #include <linux/pm_qos_params.h>
 
@@ -83,6 +84,8 @@ static const char *vfe_general_cmd[] = {
 };
 
 static void     *vfe_syncdata;
+static struct clk *ebi1_clk;
+static const char *const clk_name = "ebi1_clk";
 
 static int vfe_enable(struct camera_enable_cmd *enable)
 {
@@ -811,6 +814,19 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 static int vfe_init(struct msm_vfe_callback *presp, struct platform_device *dev)
 {
 	int rc = 0;
+
+	ebi1_clk = clk_get(NULL, clk_name);
+	if (!ebi1_clk) {
+		pr_err("[CAM]%s: could not get %s\n", __func__, clk_name);
+		return -EIO;
+	}
+
+	rc = clk_set_rate(ebi1_clk, 128000000);
+	if (rc < 0) {
+		pr_err("[CAM]%s: clk_set_rate(%s) failed: %d\n", __func__,
+			clk_name, rc);
+		return rc;
+	}
 
 	rc = vfe_cmd_init(presp, dev, vfe_syncdata);
 	if (rc < 0)
