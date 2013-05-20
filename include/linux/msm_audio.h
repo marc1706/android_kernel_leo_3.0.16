@@ -45,6 +45,8 @@
 #define AUDIO_ADSP_PAUSE            _IOR(AUDIO_IOCTL_MAGIC, 17, unsigned)
 #define AUDIO_ADSP_RESUME           _IOR(AUDIO_IOCTL_MAGIC, 18, unsigned)
 #define AUDIO_PLAY_DTMF             _IOW(AUDIO_IOCTL_MAGIC, 19, unsigned)
+#define AUDIO_SET_INCALL               _IOW(AUDIO_IOCTL_MAGIC, 19, \
+					 struct msm_voicerec_mode)
 #define AUDIO_GET_AAC_CONFIG        _IOR(AUDIO_IOCTL_MAGIC, 20, unsigned)
 #define AUDIO_GET_AMRNB_ENC_CONFIG  _IOW(AUDIO_IOCTL_MAGIC, 21, unsigned)
 #define AUDIO_SET_AMRNB_ENC_CONFIG  _IOR(AUDIO_IOCTL_MAGIC, 22, unsigned)
@@ -169,6 +171,10 @@ struct msm_audio_amrnb_enc_config {
 
 #define SND_MUTE_UNMUTED 0
 #define SND_MUTE_MUTED   1
+
+struct msm_voicerec_mode {
+	uint32_t rec_mode;
+};
 
 struct msm_snd_device_config {
 	uint32_t device;
