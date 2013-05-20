@@ -449,8 +449,7 @@ done:
 	return ret;
 }
 
-static int q6venc_ioctl(struct inode *inode, struct file *file,
-			unsigned cmd, unsigned long arg)
+static long q6venc_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 {
 	struct q6venc_dev *q6venc = file->private_data;
 	struct init_config config;
