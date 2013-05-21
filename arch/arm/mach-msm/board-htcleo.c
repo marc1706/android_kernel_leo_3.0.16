@@ -954,6 +954,7 @@ static struct platform_device htcleo_rfkill =
 ///////////////////////////////////////////////////////////////////////
 
 static struct msm_pm_platform_data msm_pm_data[MSM_PM_SLEEP_MODE_NR] = {
+#if 0
 	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE] = {
 		.idle_supported = 1,
 		.suspend_supported = 1,
@@ -962,7 +963,6 @@ static struct msm_pm_platform_data msm_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 		.latency = 8594,
 		.residency = 23740,
 	},
-#if 0
 	[MSM_PM_SLEEP_MODE_APPS_SLEEP] = {
 		.idle_supported = 1,
 		.suspend_supported = 1,
