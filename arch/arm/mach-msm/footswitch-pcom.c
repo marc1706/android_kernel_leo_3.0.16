@@ -136,6 +136,7 @@ static int footswitch_enable(struct regulator_dev *rdev)
 	return rc;
 }
 
+#ifndef CONFIG_MACH_HTCLEO
 static int footswitch_disable(struct regulator_dev *rdev)
 {
 	struct footswitch *fs = rdev_get_drvdata(rdev);
@@ -153,11 +154,14 @@ static int footswitch_disable(struct regulator_dev *rdev)
 
 	return rc;
 }
+#endif
 
 static struct regulator_ops footswitch_ops = {
 	.is_enabled = footswitch_is_enabled,
 	.enable = footswitch_enable,
+#ifndef CONFIG_MACH_HTCLEO
 	.disable = footswitch_disable,
+#endif
 };
 
 #define FOOTSWITCH(_id, _pcom_id, _name, _src_clk, _rate, _ahb_clk, _is_manual) \
