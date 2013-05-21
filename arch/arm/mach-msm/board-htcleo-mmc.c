@@ -144,8 +144,10 @@ static unsigned int htcleo_sdslot_status(struct device *dev)
 				 MMC_VDD_27_28 | MMC_VDD_28_29 | \
 				 MMC_VDD_29_30)
 
+static unsigned int htcleo_sd_slot_type = MMC_TYPE_SDIO_WIFI;
 static struct mmc_platform_data htcleo_sdslot_data =
 {
+	.slot_type		= &htcleo_sd_slot_type,
 	.ocr_mask		= HTCLEO_MMC_VDD,
 	.status			= htcleo_sdslot_status,
 	.register_status_notify	= NULL,
@@ -215,12 +217,14 @@ static unsigned int htcleo_wifi_status(struct device *dev)
 	return htcleo_wifi_cd;
 }
 
+static unsigned int htcleo_wifi_slot_type = MMC_TYPE_SDIO_WIFI;
 static struct mmc_platform_data htcleo_wifi_data = {
 	/* 
 	 * lowered wifi vdd to 2650 for now, might test lower vdds later
 	 * incredible uses 2050 and seems to work without issues
 	 * by marc1706
 	 */
+	.slot_type		= &htcleo_wifi_slot_type,
 	.ocr_mask		= MMC_VDD_26_27,
 	.built_in		= 1,
 	.status			= htcleo_wifi_status,
