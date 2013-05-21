@@ -89,7 +89,7 @@ module_param_array_named(offalarm, offalarm, uint, &offalarm_size,
 			S_IRUGO | S_IWUSR);
 #endif
 
-static int msm_pm_debug_mask = MSM_PM_DEBUG_CLOCK | MSM_PM_DEBUG_WAKEUP_REASON;
+static int msm_pm_debug_mask = MSM_PM_DEBUG_CLOCK | MSM_PM_DEBUG_WAKEUP_REASON | MSM_PM_DEBUG_SUSPEND | MSM_PM_DEBUG_POWER_COLLAPSE;
 module_param_named(
 	debug_mask, msm_pm_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP
 );
