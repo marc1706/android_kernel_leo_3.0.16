@@ -45,6 +45,8 @@ Original Auther:
 #include <linux/rtc.h>
 #include <linux/slab.h>
 #include <mach/board.h>
+#include <linux/proc_fs.h>
+#include <asm/uaccess.h>
 
 struct ds2746_device_info {
 
@@ -62,6 +64,45 @@ struct ds2746_device_info {
 		ktime_t last_poll;
 };
 static struct wake_lock vbus_wake_lock;
+
+/**
+* proc_fs interface for fast charge
+* Copyright (c) 2013 Marc Alexander
+*/
+#define PROC_FAST_CHARGE_NAME "fast_charge"
+
+static struct proc_dir_entry *fast_charge;
+static int allow_fast_charge = 0;
+
+static int proc_read_fast_charge(char *page, char **start, off_t off, int count,
+	int *eof, void *data)
+{
+	int ret;
+
+	ret = sprintf(page, "%i\n", allow_fast_charge);
+
+	return ret;
+}
+
+static int proc_write_fast_charge(struct file *file, const char *buffer,
+	unsigned long count, void *data)
+{
+	char temp_buff[count + 1];
+	int ret;
+	int len = count;
+
+	if (copy_from_user(temp_buff, buffer, len))
+		return -EFAULT;
+
+	sscanf(temp_buff, "%i", &ret);
+
+	if (!ret || ret == 1)
+		allow_fast_charge = ret;
+	else
+		printk(KERN_ALERT "%s: Incorrect value:%i\n", __func__, ret);
+
+	return ret;
+}
 
 /*========================================================================================
 
@@ -284,10 +325,14 @@ static BOOL is_charging_avaiable(void)
 
 static BOOL is_high_current_charging_avaialable(void)
 {
-	if (!poweralg.protect_flags.is_charging_high_current_avaialble)	return FALSE;
-	if (!poweralg.is_china_ac_in) return FALSE;
-	if (poweralg.charge_state == CHARGE_STATE_UNKNOWN) return FALSE;
-	return TRUE;
+	if (!poweralg.protect_flags.is_charging_high_current_avaialble)
+		return FALSE;
+	else if (!poweralg.is_china_ac_in && !allow_fast_charge)
+		return FALSE;
+	else if (poweralg.charge_state == CHARGE_STATE_UNKNOWN)
+		return FALSE;
+	else
+		return TRUE;
 }
 
 static BOOL is_super_current_charging_avaialable(void)
@@ -1527,6 +1572,19 @@ static int __init ds2746_battery_init(void)
 	if (ret < 0){
 		return ret;
 	}
+
+	fast_charge = create_proc_entry(PROC_FAST_CHARGE_NAME, 0644, NULL);
+
+	if (fast_charge == NULL) {
+		remove_proc_entry(PROC_FAST_CHARGE_NAME, NULL);
+		printk(KERN_ALERT "%s: Unable to create /proc/%s\n", __func__,
+		       PROC_FAST_CHARGE_NAME);
+	}
+	fast_charge->read_proc = proc_read_fast_charge;
+	fast_charge->write_proc = proc_write_fast_charge;
+	fast_charge->uid = 0;
+	fast_charge->gid = 0;
+	printk(KERN_INFO "/proc/%s created\n", PROC_FAST_CHARGE_NAME);
 
 	/*mutex_init(&htc_batt_info.lock);*/
 	return platform_driver_register(&ds2746_battery_driver);
