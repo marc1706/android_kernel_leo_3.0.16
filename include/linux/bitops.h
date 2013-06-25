@@ -2,7 +2,7 @@
 #define _LINUX_BITOPS_H
 #include <asm/types.h>
 
-#ifdef	__KERNEL__
+#if defined(__KERNEL__) || defined(__cplusplus)
 #define BIT(nr)			(1UL << (nr))
 #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
 #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
