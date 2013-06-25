@@ -363,7 +363,7 @@ static int usb_config_gpio(int config)
 	int pin, rc;
 
 	if (config) {
-		for (pin = 0; pin < ARRAY_SIZE(ulpi_on_gpio_table); pin++) {			
+		for (pin = 0; pin < ARRAY_SIZE(ulpi_on_gpio_table); pin++) {
 			rc = gpio_tlmm_config(ulpi_on_gpio_table[pin],
 					      GPIO_CFG_ENABLE);
 			if (rc) {
@@ -392,7 +392,7 @@ static int usb_config_gpio(int config)
 static void usb_phy_shutdown(void)
 {
 	printk("%s: %s\n", __FILE__, __func__);
-	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 1); 
+	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 1);
 	mdelay(3);
 	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 0);
 	mdelay(3);
@@ -402,7 +402,7 @@ int usb_phy_reset(void  __iomem *regs)
 {
 	printk("%s: %s\n", __FILE__, __func__);
 	usb_phy_shutdown();
-	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 0); 
+	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 0);
 	mdelay(3);
 	gpio_set_value(HTCLEO_GPIO_USBPHY_3V3_ENABLE, 1);
 	mdelay(3);
@@ -1312,7 +1312,7 @@ static uint32_t pd_m_coef[] = {
 	24, /* Sony 1300mAh (HTE) */
 	27, /* Sanyo 1300mAh (HTE) */
 	30, /* Samsung 1230mAh */
-	30, /* HTC Extended 2300mAh */ 
+	30, /* HTC Extended 2300mAh */
 };
 
 static uint32_t pd_m_resl[] = {
@@ -1321,7 +1321,7 @@ static uint32_t pd_m_resl[] = {
 	100, /* Sony 1300mAh (HTE) */
 	100, /* Sanyo 1300mAh (HTE) */
 	100, /* Samsung 1230mAh */
-	100, /* HTC Extended 2300mAh */ 
+	100, /* HTC Extended 2300mAh */
 };
 
 static uint32_t pd_t_coef[] = {
@@ -1331,7 +1331,7 @@ static uint32_t pd_t_coef[] = {
 	140, /* Sony 1300mAh (HTE) */
 	156, /* Sanyo 1300mAh (HTE) */
 	250, /* Samsung 1230mAh */
-	250, /* HTC Extended 2300mAh */ 
+	250, /* HTC Extended 2300mAh */
 };
 
 static int32_t padc[] = {
@@ -1508,14 +1508,14 @@ static void msm_i2c_gpio_config(int adap_id, int config_type)
 
 	if (adap_id > 0) return;
 
-	if (config_type == 0) 
+	if (config_type == 0)
 	{
 		id = GPIO_CFG(GPIO_I2C_CLK, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &id, 0);
 		id = GPIO_CFG(GPIO_I2C_DAT, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &id, 0);
-	} 
-	else 
+	}
+	else
 	{
 		id = GPIO_CFG(GPIO_I2C_CLK, 1, GPIO_INPUT, GPIO_NO_PULL, GPIO_8MA);
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &id, 0);
@@ -1525,7 +1525,7 @@ static void msm_i2c_gpio_config(int adap_id, int config_type)
 }
 
 
-static struct msm_i2c_platform_data msm_i2c_pdata = 
+static struct msm_i2c_platform_data msm_i2c_pdata =
 {
 	.clk_freq = 400000,
 	.pri_clk = GPIO_I2C_CLK,
@@ -1714,7 +1714,7 @@ static void __init htcleo_init(void)
 	do_sdc1_reset();
 	msm_clock_init(&qds8x50_clock_init_data);
 	acpuclk_init(&acpuclk_8x50_soc_data);
-	
+
 	init_dex_comm();
 
 #ifdef CONFIG_SERIAL_MSM_HS
@@ -1742,10 +1742,10 @@ static void __init htcleo_init(void)
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 
 	i2c_register_board_info(0, base_i2c_devices, ARRAY_SIZE(base_i2c_devices));
-	
+
 	htcleo_init_mmc(0);
 	platform_device_register(&htcleo_timed_gpios);
-	
+
 #ifdef CONFIG_HTCLEO_BLINK_ON_BOOT
 	/* Blink the camera LED shortly to show that we're alive! */
 	htcleo_blink_camera_led();
@@ -1781,7 +1781,7 @@ static void __init htcleo_map_io(void)
 	msm_map_qsd8x50_io();
 	if (socinfo_init() < 0)
 		printk(KERN_ERR "%s: socinfo_init() failed!\n",__func__);
-	
+
 #if defined(CONFIG_VERY_EARLY_CONSOLE)
 // Init our consoles _really_ early
 #if defined(CONFIG_HTC_FB_CONSOLE)
