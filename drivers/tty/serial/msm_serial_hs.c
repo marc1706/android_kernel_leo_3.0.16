@@ -1870,7 +1870,7 @@ static int __init msm_hs_probe(struct platform_device *pdev)
 	if (unlikely((int)uport->irq < 0))
 		return -ENXIO;
 
-	if (pdata == NULL)
+	if (pdata == NULL || pdata->rx_wakeup_irq < 0)
 		msm_uport->wakeup.irq = -1;
 	else {
 		msm_uport->wakeup.irq = pdata->rx_wakeup_irq;
