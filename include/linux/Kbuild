@@ -408,3 +408,5 @@ header-y += msm_mdp.h
 header-y += msm_q6vdec.h
 header-y += msm_q6venc.h
 header-y += bitops.h
+header-y += asm/types.h
+header-y += asm/bitops.h
