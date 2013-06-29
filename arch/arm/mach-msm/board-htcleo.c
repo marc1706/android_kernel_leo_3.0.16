@@ -1431,8 +1431,10 @@ static struct platform_device *devices[] __initdata =
 #if !defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	&msm_device_uart1,
 #endif
+#ifdef CONFIG_SERIAL_MSM_HS
 #ifdef CONFIG_SERIAL_BCM_BT_LPM
 	&bcm_bt_lpm_device,
+#endif
 #endif
 #ifdef CONFIG_720P_CAMERA
     //&android_pmem_venc_device,
