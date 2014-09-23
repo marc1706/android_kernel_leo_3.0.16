@@ -1721,10 +1721,8 @@ static void __init htcleo_init(void)
 
 #ifdef CONFIG_SERIAL_MSM_HS
 	msm_device_uart_dm1.dev.platform_data = &msm_uart_dm1_pdata;
-#if 0
-	msm_device_uart_dm1.name = "msm_serial_hs_brcm"; /* for bcm */
+	msm_device_uart_dm1.name = "msm_serial_hs";
 	msm_device_uart_dm1.resource[3].end = 6;
-#endif
 #endif
 
 	config_gpio_table(bt_gpio_table, ARRAY_SIZE(bt_gpio_table));
