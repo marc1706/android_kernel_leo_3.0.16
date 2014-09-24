@@ -1849,7 +1849,7 @@ static int set_offmode_alarm(void)
 
 static void msm_pm_power_off(void)
 {
-#if !defined(CONFIG_ARCH_MSM7X30) && !defined(CONFIG_ARCH_MSM7X27)
+#if !defined(CONFIG_ARCH_MSM7X30) && !defined(CONFIG_ARCH_MSM7X27) && !defined(CONFIG_ARCH_QSD8X50)
 	msm_rpcrouter_close();
 #endif
 
